@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.mapper.CustomerTraceHistoryMapper" >
+  <resultMap id="BaseResultMap" type="cn.wolfcode.domain.CustomerTraceHistory" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="trace_time" property="traceTime" jdbcType="DATE" />
+    <result column="trace_details" property="traceDetails" jdbcType="VARCHAR" />
+    <result column="trace_result" property="traceResult" jdbcType="INTEGER" />
+    <result column="input_time" property="inputTime" jdbcType="TIMESTAMP" />
+    <association property="traceType" javaType="cn.wolfcode.domain.SystemDictionaryItem" column="trace_type_id"
+                 select="cn.wolfcode.mapper.SystemDictionaryItemMapper.selectByPrimaryKey">
+    </association>
+    <association property="customer" javaType="cn.wolfcode.domain.Customer" columnPrefix="c_">
+      <id column="id" property="id"/>
+      <result column="name" property="name"/>
+    </association>
+    <association property="inputUser" javaType="cn.wolfcode.domain.Employee" columnPrefix="e_">
+      <id column="id" property="id"/>
+      <result column="name" property="name"/>
+    </association>
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from customertracehistory
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="cn.wolfcode.domain.CustomerTraceHistory" useGeneratedKeys="true" keyProperty="id" >
+    insert into customertracehistory (trace_time, trace_details, trace_type_id, 
+      trace_result, customer_id, input_user_id, 
+      input_time)
+    values (#{traceTime,jdbcType=DATE}, #{traceDetails,jdbcType=VARCHAR}, #{traceType.id,jdbcType=BIGINT}, 
+      #{traceResult,jdbcType=INTEGER}, #{customer.id,jdbcType=BIGINT}, #{inputUser.id,jdbcType=BIGINT}, 
+      #{inputTime,jdbcType=TIMESTAMP})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="cn.wolfcode.domain.CustomerTraceHistory" >
+    update customertracehistory
+    set trace_time = #{traceTime,jdbcType=DATE},
+      trace_details = #{traceDetails,jdbcType=VARCHAR},
+      trace_type_id = #{traceType.id,jdbcType=BIGINT},
+      trace_result = #{traceResult,jdbcType=INTEGER},
+      customer_id = #{customer.id,jdbcType=BIGINT},
+      input_user_id = #{inputUser.id,jdbcType=BIGINT},
+      input_time = #{inputTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select id, trace_time, trace_details, trace_type_id, trace_result, customer_id, input_user_id, 
+    input_time
+    from customertracehistory
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select id, trace_time, trace_details, trace_type_id, trace_result, customer_id, input_user_id, 
+    input_time
+    from customertracehistory
+  </select>
+  <select id="selectForList" resultMap="BaseResultMap">
+    SELECT
+      cth.id,
+      cth.trace_time,
+      cth.trace_details,
+      cth.trace_type_id,
+      cth.trace_result,
+      cth.customer_id,
+      cth.input_user_id,
+      cth.input_time,
+      c.id as c_id,
+      c. NAME as c_name,
+      e.id as e_id,
+      e. NAME as e_name
+    FROM
+      customertracehistory cth
+      LEFT JOIN customer c ON cth.customer_id = c.id
+      LEFT JOIN employee e ON cth.input_user_id = e.id
+      <where>
+        <if test="sellerId!=null and sellerId != -1">
+          and cth.input_user_id = #{sellerId}
+        </if>
+      </where>
+    ORDER BY  cth.input_time DESC
+  </select>
+</mapper>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.mapper.TeacherMapper" >
+  <resultMap id="BaseResultMap" type="cn.wolfcode.domain.Teacher" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from teacher
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="cn.wolfcode.domain.Teacher" useGeneratedKeys="true" keyProperty="id" >
+    insert into teacher (name)
+    values (#{name,jdbcType=VARCHAR})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="cn.wolfcode.domain.Teacher" >
+    update teacher
+    set name = #{name,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select id, name
+    from teacher
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select id, name
+    from teacher
+  </select>
+  <select id="selectByClaId" resultType="cn.wolfcode.domain.Teacher">
+    select t.id, t.name from teacher t
+    JOIN teacher_classinfo tc on t.id = tc.teacher_id
+    where tc.classinfo_id= #{id}
+  </select>
+</mapper>

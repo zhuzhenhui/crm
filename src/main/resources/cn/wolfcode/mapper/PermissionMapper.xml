@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.mapper.PermissionMapper" >
+  <resultMap id="BaseResultMap" type="cn.wolfcode.domain.Permission" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="expression" property="expression" jdbcType="VARCHAR" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from permission
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="cn.wolfcode.domain.Permission" useGeneratedKeys="true" keyProperty="id" >
+    insert into permission (name, expression)
+    values (#{name,jdbcType=VARCHAR}, #{expression,jdbcType=VARCHAR})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="cn.wolfcode.domain.Permission" >
+    update permission
+    set name = #{name,jdbcType=VARCHAR},
+      expression = #{expression,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select id, name, expression
+    from permission
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select id, name, expression
+    from permission
+  </select>
+  <select id="selectForList" resultType="cn.wolfcode.domain.Permission">
+    select id, name, expression
+    from permission
+  </select>
+  <select id="selectAllExpression" resultType="java.lang.String">
+    select expression
+    from permission
+  </select>
+  <select id="selectByRoleId" resultType="cn.wolfcode.domain.Permission">
+    SELECT p.id, p.name, p.expression from permission p
+    JOIN role_permission rp on rp.permission_id = p.id
+    where rp.role_id = #{id}
+  </select>
+  <select id="selectExpressionByEmpId" resultType="java.lang.String">
+    select p.expression from permission p
+      join role_permission rp on p.id = rp.permission_id
+      join employee_role er on rp.role_id = er.role_id
+    where er.employee_id = #{id}
+  </select>
+</mapper>

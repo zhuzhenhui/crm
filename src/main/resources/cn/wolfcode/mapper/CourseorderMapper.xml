@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.mapper.CourseorderMapper" >
+  <resultMap id="BaseResultMap" type="cn.wolfcode.domain.Courseorder" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="input_time" property="inputTime" jdbcType="TIMESTAMP" />
+    <result column="money" property="money" jdbcType="DECIMAL" />
+    <association property="course" javaType="cn.wolfcode.domain.SystemDictionaryItem" columnPrefix="s_">
+      <id column="id" property="id"/>
+      <result column="title" property="title"/>
+    </association>
+    <association property="customer" javaType="cn.wolfcode.domain.Customer" columnPrefix="c_">
+      <id column="id" property="id"/>
+      <result column="name" property="name"/>
+    </association>
+   </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from courseorder
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="cn.wolfcode.domain.Courseorder" useGeneratedKeys="true" keyProperty="id" >
+    insert into courseorder (input_time, customer_id, course_id, 
+      money)
+    values (#{inputTime,jdbcType=TIMESTAMP}, #{customer.id,jdbcType=BIGINT}, #{course.id,jdbcType=BIGINT}, 
+      #{money,jdbcType=DECIMAL})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="cn.wolfcode.domain.Courseorder" >
+    update courseorder
+    set input_time = #{inputTime,jdbcType=TIMESTAMP},
+      customer_id = #{customer.id,jdbcType=BIGINT},
+      course_id = #{course.id,jdbcType=BIGINT},
+      money = #{money,jdbcType=DECIMAL}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select id, input_time, customer_id, course_id, money
+    from courseorder
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select id, input_time, customer_id, course_id, money
+    from courseorder
+  </select>
+  <select id="selectForList" resultMap="BaseResultMap">
+    SELECT
+      cd.id,
+      cd.input_time,
+      cd.customer_id,
+      cd.course_id,
+      cd.money,
+      c.id as c_id,
+      c.name as c_name,
+      s.id as s_id,
+      s.title as s_title
+    FROM
+      courseorder cd
+      LEFT JOIN customer c on c.id = cd.customer_id
+      LEFT JOIN systemdictionaryitem s on s.id = cd.course_id
+    <where>
+    <if test="keyword != null">
+      and c.name like concat('%',#{keyword},'%')
+    </if>
+    <if test="courseId != null and courseId != -1">
+      and s.id = #{courseId}
+    </if>
+  </where>
+  </select>
+</mapper>

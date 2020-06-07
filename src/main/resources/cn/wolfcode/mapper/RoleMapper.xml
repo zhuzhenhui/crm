@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.mapper.RoleMapper" >
+  <resultMap id="BaseResultMap" type="cn.wolfcode.domain.Role" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="sn" property="sn" jdbcType="VARCHAR" />
+    <collection property="permissions" select="cn.wolfcode.mapper.PermissionMapper.selectByRoleId" column="id"></collection>
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from role
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteRelation">
+    delete from role_permission
+    where role_id = #{rid}
+  </delete>
+  <insert id="insert" parameterType="cn.wolfcode.domain.Role" useGeneratedKeys="true" keyProperty="id" >
+    insert into role (name, sn)
+    values (#{name,jdbcType=VARCHAR}, #{sn,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertRelation2">
+    insert into role_permission(role_id, permission_id) values
+    <foreach collection="ids" separator="," item="pid">
+      (#{rid},#{pid})
+    </foreach>
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="cn.wolfcode.domain.Role" >
+    update role
+    set name = #{name,jdbcType=VARCHAR},
+      sn = #{sn,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select id, name, sn
+    from role
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select id, name, sn
+    from role
+  </select>
+  <select id="selectForList" resultType="cn.wolfcode.domain.Role">
+    select id, name, sn
+    from role
+  </select>
+  <select id="selectByEmpId" resultType="cn.wolfcode.domain.Role">
+    SELECT r.id, r.name, r.sn from role r
+      JOIN employee_role er on er.role_id = r.id
+    where er.employee_id = #{id}
+  </select>
+    <select id="selectSnByEmpId" resultType="java.lang.String">
+      SELECT r.sn from role r
+        JOIN employee_role er on er.role_id = r.id
+      where er.employee_id = #{id}
+    </select>
+</mapper>

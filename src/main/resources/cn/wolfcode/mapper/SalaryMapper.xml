@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.mapper.SalaryMapper" >
+  <resultMap id="BaseResultMap" type="cn.wolfcode.domain.Salary" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="money" property="money" jdbcType="DECIMAL" />
+    <result column="year" property="year" jdbcType="INTEGER" />
+    <result column="month" property="month" jdbcType="INTEGER" />
+    <association property="employee" javaType="cn.wolfcode.domain.Employee" columnPrefix="e_">
+      <id column="id" property="id"/>
+      <result column="name" property="name"/>
+    </association>
+    <association property="payout" javaType="cn.wolfcode.domain.SystemDictionaryItem" columnPrefix="sdi_">
+      <id column="id" property="id"/>
+      <result column="title" property="title"/>
+    </association>
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from salary
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="cn.wolfcode.domain.Salary" useGeneratedKeys="true" keyProperty="id" >
+    insert into salary (money, year, month, 
+      employee_id, payout_id)
+    values (#{money,jdbcType=DECIMAL}, #{year,jdbcType=INTEGER}, #{month,jdbcType=INTEGER}, 
+      #{employee.id,jdbcType=BIGINT}, #{payout.id,jdbcType=BIGINT})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="cn.wolfcode.domain.Salary" >
+    update salary
+    set money = #{money,jdbcType=DECIMAL},
+      year = #{year,jdbcType=INTEGER},
+      month = #{month,jdbcType=INTEGER},
+      employee_id = #{employee.id,jdbcType=BIGINT},
+      payout_id = #{payout.id,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select id, money, year, month, employee_id, payout_id
+    from salary
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select id, money, year, month, employee_id, payout_id
+    from salary
+  </select>
+  <select id="selectForList" resultMap="BaseResultMap">
+    SELECT
+      s.id,
+      s.money,
+      s. YEAR,
+      s. MONTH,
+      s.employee_id,
+      s.payout_id,
+      e.id as e_id,
+      e.name as e_name,
+      sdi.id as sdi_id,
+      sdi.title as sdi_title
+    FROM
+      salary s
+      LEFT JOIN employee e on e.id = s.employee_id
+      LEFT JOIN systemdictionaryitem sdi on sdi.id = s.payout_id
+    <where>
+      <if test="keyword != null">
+        and e.name like concat('%',#{keyword},'%')
+      </if>
+      <if test="payoutId != null and payoutId != -1">
+        and sdi.id = #{payoutId}
+      </if>
+    </where>
+  </select>
+</mapper>

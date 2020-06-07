@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.wolfcode.mapper.EmployeeMapper">
+<resultMap id="BaseResultMap" type="cn.wolfcode.domain.Employee">
+  <id column="id" jdbcType="BIGINT" property="id" />
+  <result column="name" jdbcType="VARCHAR" property="name" />
+  <result column="password" jdbcType="VARCHAR" property="password" />
+  <result column="email" jdbcType="VARCHAR" property="email" />
+  <result column="age" jdbcType="INTEGER" property="age" />
+  <result column="admin" jdbcType="BIT" property="admin" />
+  <result column="d_id" property="dept.id" />
+  <result column="d_name" property="dept.name" />
+  <result column="d_sn" property="dept.sn" />
+  <collection property="roles" select="cn.wolfcode.mapper.RoleMapper.selectByEmpId" column="id"></collection>
+</resultMap>
+<delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+  delete from employee
+  where id = #{id,jdbcType=BIGINT}
+</delete>
+  <delete id="deleteRelation">
+    delete from employee_role
+    where employee_id = #{eid}
+  </delete>
+  <delete id="batchDelete">
+    delete from employee where id in
+    <foreach collection="array" item="id" open="(" close=")" separator=",">
+      #{id}
+    </foreach>
+  </delete>
+  <update id="updateByPrimaryKey" parameterType="cn.wolfcode.domain.Employee">
+  update employee
+  set name = #{name,jdbcType=VARCHAR},
+  email = #{email,jdbcType=VARCHAR},
+  age = #{age,jdbcType=INTEGER},
+  admin = #{admin,jdbcType=BIT},
+  dept_id = #{dept.id}
+  where id = #{id,jdbcType=BIGINT}
+</update>
+  <update id="updatePassword">
+    update employee
+    set password=#{newPassword}
+    where id = #{id}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+  select e.id, e.name, e.password, e.email, e.age, e.admin, e.dept_id,
+  d.id AS d_id, d.name AS d_name, d.sn AS d_sn
+  from employee e
+  LEFT JOIN department d ON e.dept_id = d.id
+  where e.id = #{id}
+</select>
+<select id="selectAll" resultMap="BaseResultMap">
+  select id, name, password, email, age, admin, dept_id
+  from employee
+</select>
+<!--分页的功能-->
+<sql id="where_sql">
+  <where>
+    <if test="keyword != null">
+      and (e.name like concat('%',#{keyword},'%') or e.email like concat('%',#{keyword},'%'))
+    </if>
+    <if test="deptId != null and deptId != -1">
+      and e.dept_id = #{deptId}
+    </if>
+  </where>
+</sql>
+<insert id="insert" keyProperty="id" parameterType="cn.wolfcode.domain.Employee" useGeneratedKeys="true">
+  insert into employee (name, password, email,
+  age, admin, dept_id)
+  values (#{name,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR},
+  #{age,jdbcType=INTEGER}, #{admin,jdbcType=BIT}, #{dept.id})
+</insert>
+  <!--关联中间表,数据-->
+  <insert id="insertRelation">
+    insert into employee_role(employee_id, role_id) values (#{eid},#{rid})
+
+  </insert>
+  <insert id="insertRelation2">
+    insert into employee_role(employee_id, role_id) values
+      <foreach collection="ids" separator="," item="rid">
+        (#{eid},#{rid})
+      </foreach>
+  </insert>
+  <!--显示数量-->
+<!--分页查询显示的数量-->
+<select id="selectForList" resultMap="BaseResultMap">
+  select e.id, e.name, e.password, e.email, e.age, e.admin, e.dept_id,
+  d.id AS d_id, d.name AS d_name, d.sn AS d_sn
+  from employee e
+  LEFT JOIN department d ON e.dept_id = d.id
+  <include refid="where_sql"/>
+</select>
+  <select id="selectByUsernameAndPassword" resultType="cn.wolfcode.domain.Employee">
+    select * from employee
+    where name = #{username} and password = #{password}
+  </select>
+  <select id="selectName" resultType="cn.wolfcode.domain.Employee">
+    select id,name,password,admin from employee WHERE name=#{name}
+  </select>
+  <select id="selectByRoleSn" resultType="cn.wolfcode.domain.Employee">
+    select DISTINCT e.id,e.name from employee e
+      join employee_role er on e.id = er.employee_id
+      join role r on r.id = er.role_id
+    where sn in
+    <foreach collection="array" open="(" item="item" separator="," close=")">
+      #{item}
+    </foreach>
+  </select>
+</mapper>
